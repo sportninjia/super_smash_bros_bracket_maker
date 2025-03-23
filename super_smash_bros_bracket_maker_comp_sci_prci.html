@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smash Bracket Showdown</title>
+    <style>
+        .bracket-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+
+        .titles {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .paragraph{
+            text-align: center;
+            color: red;
+        }
+
+        .titles h2 {
+            width: 200px;
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .bracket-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .final-round {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .final-round .round {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center the title below */
+        }
+
+        .final-round h3 {
+            margin: 5px 0 0 0; /* Space above the title, no space below */
+            color: #333;
+            font-size: 16px;
+        }
+
+        .sides {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .bracket-side {
+            display: flex;
+            width: 45%;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        .round.right {
+            flex-direction: column-reverse;
+        }
+
+        .matchup {
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #round4 .matchup {
+            display: flex;
+            justify-content: space-between;
+            width: 300px;
+            margin-bottom: 0; /* Reduce bottom margin to keep title close */
+        }
+
+        .player {
+            padding: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .player:hover {
+            background-color: #e0e0e0;
+        }
+
+        .player.winner {
+            background-color: #90ee90;
+            font-weight: bold;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            margin: 20px 0;
+            color: #d32f2f;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 10px;
+        }
+
+        button:hover {
+            background-color: #cc0000;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* Popup Styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .popup h2 {
+            color: #d32f2f;
+            margin-top: 0;
+        }
+
+        .popup button {
+            margin-top: 20px;
+            background-color: #4CAF50;
+        }
+
+        .popup button:hover {
+            background-color: #45a049;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Smash Bracket Showdown</div>
+    <p class="paragraph">This project was collaboratively developed by Adarsh Rajesh, Ian Hiley, and Gracie Hutchins</p>
+    <div class="controls">
+        <button onclick="createBrackets()">Generate Bracket</button>
+        <button id="undoButton" disabled>Undo Last Move</button>
+    </div>
+    <div class="bracket-container">
+        <div class="titles">
+            <h2>Round of 16</h2>
+            <h2>Quarterfinals</h2>
+            <h2>Semifinals</h2>
+            <h2>Final</h2> 
+            <h2>Semifinals</h2>
+            <h2>Quarterfinals</h2>
+            <h2>Round of 16</h2>
+        </div>
+        <div class="bracket-wrapper" id="bracketOutput">
+            <!-- Bracket will be generated here -->
+        </div>
+    </div>
+
+    <!-- Popup and Overlay -->
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="winnerPopup">
+        <h2>Congratulations!</h2>
+        <p id="winnerName"></p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        var classmates = [
+            "Ian", "Jason", "Jacob", "Logan",
+            "Adarsh", "Gracie", "Luke", "Larry",
+            "Clay", "Warren", "Rishi", "Marvin",
+            "Rohan", "Saanvi", "Brady", "Shaurya"
+        ];
+
+        let history = [];
+        const undoButton = document.getElementById('undoButton');
+        const overlay = document.getElementById('overlay');
+        const winnerPopup = document.getElementById('winnerPopup');
+        const winnerName = document.getElementById('winnerName');
+
+        function shuffleNames(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function saveState() {
+            const state = {};
+            document.querySelectorAll('.player').forEach(player => {
+                state[player.getAttribute('data-slot')] = {
+                    text: player.textContent,
+                    winner: player.classList.contains('winner')
+                };
+            });
+            return state;
+        }
+
+        function showWinner(winner) {
+            winnerName.textContent = `${winner} has won the Smash Bracket Showdown!`;
+            overlay.style.display = 'block';
+            winnerPopup.style.display = 'block';
+        }
+
+        function closePopup() {
+            overlay.style.display = 'none';
+            winnerPopup.style.display = 'none';
+        }
+
+        function createBrackets() {
+            var players = shuffleNames(classmates.slice());
+            var bracketOutput = document.getElementById('bracketOutput');
+            
+            bracketOutput.innerHTML = `
+                <div class="final-round">
+                    <div class="round" id="round4">
+                        <div class="matchup" data-match="8">
+                            <div class="player" data-slot="15">-</div>
+                            <div class="player" data-slot="16">-</div>
+                        </div>
+                        <h3>Finals</h3> <!-- Changed from "Final" to "Finals" -->
+                    </div>
+                </div>
+                <div class="sides">
+                    <div class="bracket-side">
+                        <div class="round" id="round1-left">
+                            <div class="matchup" data-match="1">
+                                <div class="player" data-slot="1">${players[0]}</div>
+                                <div class="player" data-slot="2">${players[1]}</div>
+                            </div>
+                            <div class="matchup" data-match="2">
+                                <div class="player" data-slot="3">${players[2]}</div>
+                                <div class="player" data-slot="4">${players[3]}</div>
+                            </div>
+                            <div class="matchup" data-match="3">
+                                <div class="player" data-slot="5">${players[4]}</div>
+                                <div class="player" data-slot="6">${players[5]}</div>
+                            </div>
+                            <div class="matchup" data-match="4">
+                                <div class="player" data-slot="7">${players[6]}</div>
+                                <div class="player" data-slot="8">${players[7]}</div>
+                            </div>
+                        </div>
+                        <div class="round" id="round2-left">
+                            <div class="matchup" data-match="5">
+                                <div class="player" data-slot="9">-</div>
+                                <div class="player" data-slot="10">-</div>
+                            </div>
+                            <div class="matchup" data-match="6">
+                                <div class="player" data-slot="11">-</div>
+                                <div class="player" data-slot="12">-</div>
+                            </div>
+                        </div>
+                        <div class="round" id="round3-left">
+                            <div class="matchup" data-match="7">
+                                <div class="player" data-slot="13">-</div>
+                                <div class="player" data-slot="14">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bracket-side">
+                        <div class="round right" id="round3-right">
+                            <div class="matchup" data-match="9">
+                                <div class="player" data-slot="17">-</div>
+                                <div class="player" data-slot="18">-</div>
+                            </div>
+                        </div>
+                        <div class="round right" id="round2-right">
+                            <div class="matchup" data-match="10">
+                                <div class="player" data-slot="19">-</div>
+                                <div class="player" data-slot="20">-</div>
+                            </div>
+                            <div class="matchup" data-match="11">
+                                <div class="player" data-slot="21">-</div>
+                                <div class="player" data-slot="22">-</div>
+                            </div>
+                        </div>
+                        <div class="round right" id="round1-right">
+                            <div class="matchup" data-match="12">
+                                <div class="player" data-slot="23">${players[8]}</div>
+                                <div class="player" data-slot="24">${players[9]}</div>
+                            </div>
+                            <div class="matchup" data-match="13">
+                                <div class="player" data-slot="25">${players[10]}</div>
+                                <div class="player" data-slot="26">${players[11]}</div>
+                            </div>
+                            <div class="matchup" data-match="14">
+                                <div class="player" data-slot="27">${players[12]}</div>
+                                <div class="player" data-slot="28">${players[13]}</div>
+                            </div>
+                            <div class="matchup" data-match="15">
+                                <div class="player" data-slot="29">${players[14]}</div>
+                                <div class="player" data-slot="30">${players[15]}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            history = [];
+            undoButton.disabled = true;
+
+            document.querySelectorAll('.player').forEach(player => {
+                player.addEventListener('click', function() {
+                    history.push(saveState());
+
+                    const matchup = this.parentElement;
+                    const matchNum = parseInt(matchup.getAttribute('data-match'));
+                    const slotNum = parseInt(this.getAttribute('data-slot'));
+                    
+                    matchup.querySelectorAll('.player').forEach(p => {
+                        p.classList.remove('winner');
+                    });
+                    
+                    this.classList.add('winner');
+
+                    let nextSlot;
+                    if (matchNum <= 4) {
+                        nextSlot = 8 + Math.ceil(matchNum / 2) * 2 + (matchNum % 2 === 0 ? -1 : 0);
+                    } else if (matchNum === 5 || matchNum === 6) {
+                        nextSlot = 12 + Math.ceil((matchNum - 4) / 2) * 2 + ((matchNum - 4) % 2 === 0 ? -1 : 0);
+                    } else if (matchNum === 7) {
+                        nextSlot = 15;
+                    } else if (matchNum === 9) {
+                        nextSlot = 16;
+                    } else if (matchNum === 10 || matchNum === 11) {
+                        nextSlot = 16 + Math.ceil((matchNum - 9) / 2) * 2 + ((matchNum - 9) % 2 === 0 ? -1 : 0);
+                    } else if (matchNum >= 12) {
+                        nextSlot = 18 + Math.ceil((matchNum - 11) / 2) * 2 + ((matchNum - 11) % 2 === 0 ? -1 : 0);
+                    }
+
+                    if (nextSlot) {
+                        const nextPlayer = document.querySelector(`.player[data-slot="${nextSlot}"]`);
+                        nextPlayer.textContent = this.textContent;
+                        nextPlayer.classList.remove('winner');
+                    }
+
+                    if (matchNum === 8) {
+                        showWinner(this.textContent);
+                    }
+
+                    undoButton.disabled = false;
+                });
+            });
+        }
+
+        undoButton.addEventListener('click', function() {
+            if (history.length > 0) {
+                const previousState = history.pop();
+                
+                Object.keys(previousState).forEach(slot => {
+                    const player = document.querySelector(`.player[data-slot="${slot}"]`);
+                    player.textContent = previousState[slot].text;
+                    if (previousState[slot].winner) {
+                        player.classList.add('winner');
+                    } else {
+                        player.classList.remove('winner');
+                    }
+                });
+
+                if (history.length === 0) {
+                    this.disabled = true;
+                }
+                closePopup();
+            }
+        });
+    </script>
+</body>
+</html>
