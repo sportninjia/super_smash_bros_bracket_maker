@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smash Bracket Showdown</title>
     <style>
-        body{
-            background-image: url("images/super_smash_bros.jpg");
+        body {
+            background-image: url("images/super_smash_bg.jpg");
         }
         .bracket-container {
             max-width: 1400px;
@@ -22,7 +22,7 @@
             position: relative;
         }
 
-        .paragraph{
+        .paragraph {
             text-align: center;
             color: red;
         }
@@ -32,6 +32,10 @@
             margin: 0;
             color: #333;
             font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
         }
 
         .bracket-wrapper {
@@ -55,11 +59,11 @@
             width: 300px;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Center the title below */
+            align-items: center;
         }
 
         .final-round h3 {
-            margin: 5px 0 0 0; /* Space above the title, no space below */
+            margin: 5px 0 0 0;
             color: #333;
             font-size: 16px;
         }
@@ -99,7 +103,7 @@
             display: flex;
             justify-content: space-between;
             width: 300px;
-            margin-bottom: 0; /* Reduce bottom margin to keep title close */
+            margin-bottom: 0;
         }
 
         .player {
@@ -278,7 +282,7 @@
                             <div class="player" data-slot="15">-</div>
                             <div class="player" data-slot="16">-</div>
                         </div>
-                        
+                        <h3>Finals</h3>
                     </div>
                 </div>
                 <div class="sides">
